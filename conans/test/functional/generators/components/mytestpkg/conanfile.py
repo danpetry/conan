@@ -34,7 +34,7 @@ class MytestpkgConan(ConanFile):
         # self.run("cmake --build . %s" % cmake.build_config)
 
     def package(self):
-        self.copy("*.lib", src="lib", dst="lib", keep_path=False)
+        self.copy("*.lib", dst="lib", keep_path=False)
 
     def package_info(self):
         self.cpp_info.components["required_component"].names["cmake_find_package"] = "required_component"

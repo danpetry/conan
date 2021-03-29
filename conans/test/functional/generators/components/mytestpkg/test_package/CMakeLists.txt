@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 project(PackageTest CXX)
 
-find_package(mytestpkg COMPONENTS required_component REQUIRED)
+find_package(Boost COMPONENTS random REQUIRED)
 add_executable(example example.cpp)
-target_link_libraries(example PRIVATE mytestpkg::required_component)
+target_link_libraries(example PRIVATE Boost::random)
 
 # CTest is a testing tool that can be used to test your project.
 # enable_testing()
