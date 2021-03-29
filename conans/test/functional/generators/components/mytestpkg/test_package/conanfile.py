@@ -6,7 +6,7 @@ from conans import ConanFile, CMake, tools
 class MytestpkgTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake_find_package"
-    requires = "boost/1.74.0"
+    requires = "mytestpkg/0.0.1"
 
     def build(self):
         cmake = CMake(self)
