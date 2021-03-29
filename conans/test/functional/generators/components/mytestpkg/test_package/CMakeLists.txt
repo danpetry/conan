@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 project(PackageTest CXX)
 
-find_package(mytestpkg COMPONENTS required_component REQUIRED)
+find_package(mytestpkg COMPONENTS required REQUIRED)
 add_executable(example example.cpp)
-target_link_libraries(example PRIVATE mytestpkg::required_component)
-
-# CTest is a testing tool that can be used to test your project.
-# enable_testing()
-# add_test(NAME example
-#          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-#          COMMAND example)
+target_link_libraries(example PRIVATE mytestpkg::required)
