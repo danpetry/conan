@@ -8,6 +8,7 @@ from conans.test.assets.genconanfile import GenConanfile
 from conans.test.assets.sources import gen_function_h, gen_function_cpp
 from conans.test.utils.tools import TestClient
 
+import pdb
 
 @pytest.mark.slow
 @pytest.mark.tool_cmake
@@ -453,6 +454,46 @@ def test_same_names(generator):
     client.run("create .")
     assert "hello: Release!" in client.out
 
+@pytest.mark.parametrize("generator", ["cmake_find_package_multi", "cmake_find_package",
+                                       "CMakeDeps"])
+def test_component_search(setup_client_with_greetings, generator):
+    client = setup_client_with_greetings
+
+    conanfile = textwrap.dedent("""
+        from conans import ConanFile, CMake
+
+        class ComponentSearchTestConan(ConanFile):
+            name = "component_search"
+            version = "0.0.1"
+            settings = "os", "compiler", "build_type", "arch"
+            generators = "{}"
+            requires = "greetings/0.0.1"
+            exports_sources = "src/*"
+
+            def build(self):
+                cmake = CMake(self)
+                cmake.configure(source_folder="src")
+
+        """).format(generator)
+
+    cmakelists = textwrap.dedent("""
+        cmake_minimum_required(VERSION 3.1)
+        project(PackageTest CXX)
+
+        find_package(greetings COMPONENTS hello REQUIRED)
+        add_executable(example example.cpp)
+        target_link_libraries(example PRIVATE greetings::hello)
+        """)
+
+    cpp_test_package = gen_function_cpp(name="main")
+
+    client.save({"conanfile.py": conanfile,
+                 "src/example.cpp": cpp_test_package,
+                 "src/CMakeLists.txt": cmakelists}, clean_first=True)
+    client.run("create .")
+
+    assert str(client.out).count("Library hello found") == 1
+    assert "Library bye found" not in client.out
 
 @pytest.mark.tool_cmake
 class TestComponentsCMakeGenerators:
