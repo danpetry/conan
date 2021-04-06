@@ -40,11 +40,7 @@ mark_as_advanced({name}_INCLUDE_DIRS{build_type_suffix}
                  {name}_LIBRARIES_TARGETS{build_type_suffix})
 
 # Find the real .lib/.a and add them to {name}_LIBS and {name}_LIBRARY_LIST
-if ({name}_FIND_COMPONENTS)
-    set({name}_LIBRARY_LIST{build_type_suffix} "")  # gather components in the calls for each component
-else()
-    set({name}_LIBRARY_LIST{build_type_suffix} {deps.libs})
-endif()
+set({name}_LIBRARY_LIST{build_type_suffix} {deps.libs})
 set({name}_LIB_DIRS{build_type_suffix} {deps.lib_paths})
 
 # Gather all the libraries that should be linked to the targets (do not touch existing variables):
@@ -131,11 +127,18 @@ class CMakeFindPackageCommonMacros:
         function(conan_package_library_targets libraries package_libdir deps out_libraries out_libraries_target build_type package_name)
             unset(_CONAN_ACTUAL_TARGETS CACHE)
             unset(_CONAN_FOUND_SYSTEM_LIBS CACHE)
+            if(DEFINED ${package_name}_FIND_COMPONENTS)
+                set(PRINT_COMPONENTS ${${package_name}_FIND_COMPONENTS} PARENT_SCOPE)
+            endif()
             foreach(_LIBRARY_NAME ${libraries})
                 find_library(CONAN_FOUND_LIBRARY NAME ${_LIBRARY_NAME} PATHS ${package_libdir}
                              NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
                 if(CONAN_FOUND_LIBRARY)
-                    conan_message(STATUS "Library ${_LIBRARY_NAME} found: ${CONAN_FOUND_LIBRARY}")
+                    if(NOT DEFINED ${package_name}_FIND_COMPONENTS)
+                        if ((NOT DEFINED PRINT_COMPONENTS) OR (PRINT_COMPONENTS MATCHES ${_LIBRARY_NAME}))
+                            conan_message(STATUS "Library ${_LIBRARY_NAME} found: ${CONAN_FOUND_LIBRARY}")
+                        endif()
+                    endif()
                     list(APPEND _out_libraries ${CONAN_FOUND_LIBRARY})
                     if(NOT ${CMAKE_VERSION} VERSION_LESS "3.0")
                         # Create a micro-target for each lib/a found
