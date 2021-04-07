@@ -44,7 +44,17 @@ conan_package_library_targets = textwrap.dedent("""
            find_library(CONAN_FOUND_LIBRARY NAME ${_LIBRARY_NAME} PATHS ${package_libdir}
                         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
            if(CONAN_FOUND_LIBRARY)
-               conan_message(STATUS "Library ${_LIBRARY_NAME} found ${CONAN_FOUND_LIBRARY}")
+               if (NOT DEFINED CPLT_PRINTED)
+                   if("${${package_name}_FIND_COMPONENTS}" STREQUAL "")
+                       conan_message(STATUS "Library ${_LIBRARY_NAME} found: ${CONAN_FOUND_LIBRARY}")
+                   else()
+                       foreach(_FC ${${package_name}_FIND_COMPONENTS})
+                           if(_LIBRARY_NAME MATCHES "${_FC}$")
+                               conan_message(STATUS "Library ${_LIBRARY_NAME} found: ${CONAN_FOUND_LIBRARY}")
+                           endif()
+                       endforeach()
+                   endif()
+               endif()
                list(APPEND _out_libraries ${CONAN_FOUND_LIBRARY})
 
                # Create a micro-target for each lib/a found
@@ -54,11 +64,8 @@ conan_package_library_targets = textwrap.dedent("""
                    add_library(${_LIB_NAME} UNKNOWN IMPORTED)
                    set_target_properties(${_LIB_NAME} PROPERTIES IMPORTED_LOCATION ${CONAN_FOUND_LIBRARY})
                    set(_CONAN_ACTUAL_TARGETS ${_CONAN_ACTUAL_TARGETS} ${_LIB_NAME})
-               else()
-                   conan_message(STATUS "Skipping already existing target: ${_LIB_NAME}")
                endif()
                list(APPEND _out_libraries_target ${_LIB_NAME})
-               conan_message(STATUS "Found: ${CONAN_FOUND_LIBRARY}")
            else()
                conan_message(ERROR "Library ${_LIBRARY_NAME} not found in package")
            endif()
@@ -73,6 +80,7 @@ conan_package_library_targets = textwrap.dedent("""
 
        set(${out_libraries} ${_out_libraries} PARENT_SCOPE)
        set(${out_libraries_target} ${_out_libraries_target} PARENT_SCOPE)
+       set(CPLT_PRINTED "true" PARENT_SCOPE)
    endfunction()
    """)
 
